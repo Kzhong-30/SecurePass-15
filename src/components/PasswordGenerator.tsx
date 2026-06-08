@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Copy, Check, Eye, EyeOff, Plus } from 'lucide-react';
 import { useGeneratorStore, useAppStore } from '@/store';
-import { generatePassword, checkStrength } from '@/utils/passwordGenerator';
+import { generatePassword, checkStrength, getSimilarChars } from '@/utils/passwordGenerator';
 import type { StrengthResult } from '@/types';
 
 export default function PasswordGenerator() {
@@ -244,21 +244,26 @@ export default function PasswordGenerator() {
           <div className="bg-slate-900/30 rounded-lg p-4">
             <h4 className="text-sm font-semibold text-slate-300 mb-3">生成预览</h4>
             <div className="font-mono text-xs text-slate-400 space-y-1">
-              <p>字符池大小: {
-                (options.includeUppercase ? 26 : 0) +
-                (options.includeLowercase ? 26 : 0) +
-                (options.includeNumbers ? 10 : 0) +
-                (options.includeSymbols ? 28 : 0)
-              } 个字符</p>
-              <p>可能组合数: {
-                Math.pow(
+              {(() => {
+                const similar = getSimilarChars();
+                let poolSize =
                   (options.includeUppercase ? 26 : 0) +
                   (options.includeLowercase ? 26 : 0) +
                   (options.includeNumbers ? 10 : 0) +
-                  (options.includeSymbols ? 28 : 0),
-                  options.length
-                ).toExponential(2)
-              }</p>
+                  (options.includeSymbols ? 28 : 0);
+                if (options.excludeSimilar) {
+                  const similarInUpper = options.includeUppercase ? [...similar].filter(c => /[A-Z]/.test(c)).length : 0;
+                  const similarInLower = options.includeLowercase ? [...similar].filter(c => /[a-z]/.test(c)).length : 0;
+                  const similarInNum = options.includeNumbers ? [...similar].filter(c => /[0-9]/.test(c)).length : 0;
+                  poolSize -= similarInUpper + similarInLower + similarInNum;
+                }
+                return (
+                  <>
+                    <p>字符池大小: {poolSize} 个字符</p>
+                    <p>可能组合数: {poolSize > 0 ? Math.pow(poolSize, options.length).toExponential(2) : '0'}</p>
+                  </>
+                );
+              })()}
             </div>
 
             <button

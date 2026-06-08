@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { AlertTriangle, Shield, Clock, Copy, CheckCircle, RefreshCw, ArrowRight } from 'lucide-react';
 import { useAppStore } from '@/store';
-import { runHealthCheck, getHealthColor, getHealthLabel } from '@/utils/healthCheck';
-import type { HealthCheckResult, PasswordEntry } from '@/types';
+import { runHealthCheck, getHealthColor, getHealthLabel, getDuplicateAffectedCount } from '@/utils/healthCheck';
+import type { HealthCheckResult, PasswordEntry, DuplicateGroup } from '@/types';
 import { checkStrength } from '@/utils/passwordGenerator';
 import { EXPIRED_DAYS } from '@/types';
 
@@ -120,9 +120,12 @@ export default function HealthCheck() {
     );
   }, [healthResult]);
 
+  const duplicateGroupCount = healthResult?.duplicateGroups.length || 0;
+  const duplicateAffectedCount = healthResult ? getDuplicateAffectedCount(healthResult.duplicateGroups) : 0;
+
   const tabs = [
     { id: 'overview' as TabType, label: '总览', icon: Shield },
-    { id: 'duplicates' as TabType, label: `重复密码 (${healthResult?.duplicates.length || 0})`, icon: Copy },
+    { id: 'duplicates' as TabType, label: `重复密码 (${duplicateAffectedCount})`, icon: Copy },
     { id: 'weak' as TabType, label: `弱密码 (${healthResult?.weakPasswords.length || 0})`, icon: AlertTriangle },
     { id: 'expired' as TabType, label: `过期密码 (${healthResult?.expiredPasswords.length || 0})`, icon: Clock },
   ];
@@ -170,7 +173,7 @@ export default function HealthCheck() {
                 </p>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-slate-900/50 rounded-lg p-4 text-center">
-                    <p className="text-2xl font-bold text-red-400">{healthResult.duplicates.length}</p>
+                    <p className="text-2xl font-bold text-red-400">{duplicateAffectedCount}</p>
                     <p className="text-xs text-slate-400">重复密码</p>
                   </div>
                   <div className="bg-slate-900/50 rounded-lg p-4 text-center">
@@ -188,9 +191,9 @@ export default function HealthCheck() {
 
           <div className="grid md:grid-cols-3 gap-4">
             <div
-              onClick={() => healthResult.duplicates.length > 0 && setActiveTab('duplicates')}
+              onClick={() => duplicateGroupCount > 0 && setActiveTab('duplicates')}
               className={`bg-slate-800/50 backdrop-blur-sm rounded-xl p-5 border border-slate-700/50 transition-all ${
-                healthResult.duplicates.length > 0 ? 'cursor-pointer hover:border-red-500/30' : 'opacity-60'
+                duplicateGroupCount > 0 ? 'cursor-pointer hover:border-red-500/30' : 'opacity-60'
               }`}
             >
               <div className="flex items-center gap-3 mb-3">
@@ -199,7 +202,7 @@ export default function HealthCheck() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-white">重复密码</h4>
-                  <p className="text-sm text-slate-400">{healthResult.duplicates.length} 个问题</p>
+                  <p className="text-sm text-slate-400">{duplicateGroupCount} 组重复，共 {duplicateAffectedCount} 个账号受影响</p>
                 </div>
               </div>
               <p className="text-sm text-slate-500">
@@ -278,15 +281,28 @@ export default function HealthCheck() {
 
       {activeTab === 'duplicates' && healthResult && (
         <div className="space-y-4">
-          {healthResult.duplicates.length > 0 ? (
+          {healthResult.duplicateGroups.length > 0 ? (
             <>
               <p className="text-sm text-slate-400">
                 以下密码被多个账号使用，请尽快修改为独一无二的强密码
               </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                {healthResult.duplicates.map((entry) =>
-                  renderEntryCard(entry, '重复', '#ef4444')
-                )}
+              <div className="space-y-4">
+                {healthResult.duplicateGroups.map((group, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-slate-800/50 backdrop-blur-sm rounded-xl p-4 border border-red-500/20"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <Copy size={16} className="text-red-400" />
+                      <span className="text-sm font-semibold text-red-400">
+                        第 {idx + 1} 组 · {group.entries.length} 个账号使用相同密码
+                      </span>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-3">
+                      {group.entries.map((entry) => renderEntryCard(entry, '重复', '#ef4444'))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </>
           ) : (

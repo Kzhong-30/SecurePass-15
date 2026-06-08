@@ -28,9 +28,13 @@ export interface StrengthResult {
   color: string;
 }
 
+export interface DuplicateGroup {
+  entries: PasswordEntry[];
+}
+
 export interface HealthCheckResult {
   totalPasswords: number;
-  duplicates: PasswordEntry[];
+  duplicateGroups: DuplicateGroup[];
   weakPasswords: PasswordEntry[];
   expiredPasswords: PasswordEntry[];
   healthScore: number;

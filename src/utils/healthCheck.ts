@@ -1,22 +1,26 @@
-import type { PasswordEntry, HealthCheckResult } from '@/types';
+import type { PasswordEntry, HealthCheckResult, DuplicateGroup } from '@/types';
 import { checkStrength } from './passwordGenerator';
 import { EXPIRED_DAYS } from '@/types';
 
-export function findDuplicates(entries: PasswordEntry[]): PasswordEntry[] {
+export function findDuplicates(entries: PasswordEntry[]): DuplicateGroup[] {
   const passwordMap = new Map<string, PasswordEntry[]>();
   entries.forEach((entry) => {
     const existing = passwordMap.get(entry.password) || [];
     passwordMap.set(entry.password, [...existing, entry]);
   });
 
-  const duplicates: PasswordEntry[] = [];
+  const groups: DuplicateGroup[] = [];
   passwordMap.forEach((group) => {
     if (group.length > 1) {
-      duplicates.push(group[0]);
+      groups.push({ entries: group });
     }
   });
 
-  return duplicates;
+  return groups;
+}
+
+export function getDuplicateAffectedCount(groups: DuplicateGroup[]): number {
+  return groups.reduce((sum, g) => sum + g.entries.length, 0);
 }
 
 export function findWeakPasswords(entries: PasswordEntry[]): PasswordEntry[] {
@@ -36,11 +40,13 @@ export function findExpiredPasswords(
 }
 
 export function calculateHealthScore(result: HealthCheckResult): number {
-  const { totalPasswords, duplicates, weakPasswords, expiredPasswords } = result;
+  const { totalPasswords, duplicateGroups, weakPasswords, expiredPasswords } = result;
   if (totalPasswords === 0) return 100;
 
+  const duplicateAffectedCount = getDuplicateAffectedCount(duplicateGroups);
+
   let score = 100;
-  const duplicatePenalty = (duplicates.length / totalPasswords) * 30;
+  const duplicatePenalty = (duplicateAffectedCount / totalPasswords) * 30;
   const weakPenalty = (weakPasswords.length / totalPasswords) * 35;
   const expiredPenalty = (expiredPasswords.length / totalPasswords) * 35;
 
@@ -49,14 +55,14 @@ export function calculateHealthScore(result: HealthCheckResult): number {
 }
 
 export function runHealthCheck(entries: PasswordEntry[]): HealthCheckResult {
-  const duplicates = findDuplicates(entries);
+  const duplicateGroups = findDuplicates(entries);
   const weakPasswords = findWeakPasswords(entries);
   const expiredPasswords = findExpiredPasswords(entries);
   const totalPasswords = entries.length;
 
   const result: HealthCheckResult = {
     totalPasswords,
-    duplicates,
+    duplicateGroups,
     weakPasswords,
     expiredPasswords,
     healthScore: 0,
