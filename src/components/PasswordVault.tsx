@@ -26,6 +26,7 @@ export default function PasswordVault() {
   const [visiblePasswords, setVisiblePasswords] = useState<Set<string>>(new Set());
   const [editForm, setEditForm] = useState<Partial<PasswordEntry>>({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
+  const [showEditPassword, setShowEditPassword] = useState(false);
 
   const filteredEntries = useMemo(() => {
     return entries.filter((entry) => {
@@ -71,12 +72,14 @@ export default function PasswordVault() {
     });
     setIsAddingEntry(true);
     setSelectedEntry(null);
+    setShowEditPassword(false);
   };
 
   const handleEdit = (entry: PasswordEntry) => {
     setEditForm(entry);
     setIsAddingEntry(false);
     setSelectedEntry(entry);
+    setShowEditPassword(false);
   };
 
   const handleSave = () => {
@@ -341,12 +344,19 @@ export default function PasswordVault() {
                 <label className="block text-sm text-slate-300 mb-1">密码 *</label>
                 <div className="flex gap-2">
                   <input
-                    type="text"
+                    type={showEditPassword ? 'text' : 'password'}
                     value={editForm.password || ''}
                     onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
                     placeholder="输入密码"
                     className="flex-1 px-4 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none font-mono"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowEditPassword(!showEditPassword)}
+                    className="px-3 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showEditPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
                 </div>
                 {editForm.password && (
                   <div className="mt-1">

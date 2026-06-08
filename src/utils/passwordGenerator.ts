@@ -42,13 +42,13 @@ export function generatePassword(options: GeneratorOptions): string {
 
   if (options.includeUppercase) {
     const upperPool = options.excludeSimilar
-      ? UPPERCASE.replace(/[O]/g, '')
+      ? UPPERCASE.replace(/[LO]/g, '')
       : UPPERCASE;
     requiredChars.push(upperPool[getSecureRandom(upperPool.length)]);
   }
   if (options.includeLowercase) {
     const lowerPool = options.excludeSimilar
-      ? LOWERCASE.replace(/[il]/g, '')
+      ? LOWERCASE.replace(/[ilo]/g, '')
       : LOWERCASE;
     requiredChars.push(lowerPool[getSecureRandom(lowerPool.length)]);
   }

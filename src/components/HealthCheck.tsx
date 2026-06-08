@@ -17,6 +17,13 @@ export default function HealthCheck() {
   const [healthResult, setHealthResult] = useState<HealthCheckResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
 
+  const entriesFingerprint = useMemo(() => {
+    return entries
+      .map((e) => `${e.id}:${e.password}:${e.createdAt}:${e.updatedAt}`)
+      .sort()
+      .join('|');
+  }, [entries]);
+
   const performScan = () => {
     setIsScanning(true);
     setTimeout(() => {
@@ -28,7 +35,7 @@ export default function HealthCheck() {
 
   useEffect(() => {
     performScan();
-  }, [entries]);
+  }, [entriesFingerprint]);
 
   const goToVault = (entry: PasswordEntry) => {
     setActiveModule('vault');
