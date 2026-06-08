@@ -5,7 +5,6 @@ import {
   decryptDataLegacy,
   deriveKey,
   hashPassword,
-  CryptoError,
 } from './crypto';
 
 const MASTER_HASH_KEY = 'pv_master_hash';
@@ -35,8 +34,9 @@ function tryNewDecrypt(encrypted: EncryptedData, masterPassword: string): Passwo
     const decrypted = decryptData(encrypted, masterPassword);
     const entries = JSON.parse(decrypted);
     if (Array.isArray(entries)) return entries as PasswordEntry[];
-  } catch {
-    // 新方案解密失败，可能需要迁移
+    console.error('[Storage] 新版解密成功但数据不是有效数组');
+  } catch (err) {
+    console.error('[Storage] 新版解密失败，尝试旧版迁移:', err instanceof Error ? err.message : err);
   }
   return null;
 }
@@ -50,8 +50,9 @@ function tryLegacyDecrypt(encrypted: EncryptedData, masterPassword: string): Pas
     const decrypted = decryptDataLegacy(encrypted, derivedKey);
     const entries = JSON.parse(decrypted);
     if (Array.isArray(entries)) return entries as PasswordEntry[];
-  } catch {
-    // 旧方案也失败
+    console.error('[Storage] 旧版解密成功但数据不是有效数组');
+  } catch (err) {
+    console.error('[Storage] 旧版迁移解密失败:', err instanceof Error ? err.message : err);
   }
   return null;
 }

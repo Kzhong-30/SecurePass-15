@@ -23,6 +23,9 @@ export function generateId(): string {
   return CryptoJS.lib.WordArray.random(16).toString();
 }
 
+/**
+ * @internal 仅用于旧版数据迁移，新代码应使用 encryptData/decryptData
+ */
 export function deriveKey(masterPassword: string, salt: string): string {
   return CryptoJS.PBKDF2(masterPassword, salt, {
     keySize: KEY_SIZE,

@@ -14,8 +14,9 @@ interface AppState {
   isAddingEntry: boolean;
   failedAttempts: number;
   lockUntil: number | null;
+  migrated: boolean;
 
-  unlock: (masterPassword: string, entries: PasswordEntry[]) => void;
+  unlock: (masterPassword: string, entries: PasswordEntry[], migrated?: boolean) => void;
   lock: () => void;
   setActiveModule: (module: ModuleType) => void;
   setSearchQuery: (query: string) => void;
@@ -60,14 +61,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   isAddingEntry: false,
   failedAttempts: 0,
   lockUntil: null,
+  migrated: false,
 
-  unlock: (masterPassword, entries) => {
+  unlock: (masterPassword, entries, migrated = false) => {
     set({
       isUnlocked: true,
       masterPassword,
       entries,
       failedAttempts: 0,
       lockUntil: null,
+      migrated,
     });
   },
 
@@ -80,6 +83,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       isAddingEntry: false,
       searchQuery: '',
       categoryFilter: '',
+      migrated: false,
     });
   },
 

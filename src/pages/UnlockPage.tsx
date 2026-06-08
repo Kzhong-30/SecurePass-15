@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Eye, EyeOff, AlertTriangle, Lock, CheckCircle } from 'lucide-react';
+import { Shield, Eye, EyeOff, AlertTriangle, Lock } from 'lucide-react';
 import { useAppStore } from '@/store';
 import { hasMasterPassword, verifyMasterPassword, initializeMasterPassword, loadEntries } from '@/utils/storage';
 import { checkStrength } from '@/utils/passwordGenerator';
@@ -21,7 +21,6 @@ export default function UnlockPage() {
   const [error, setError] = useState('');
   const [shake, setShake] = useState(false);
   const [lockCountdown, setLockCountdown] = useState(0);
-  const [migrationNotice, setMigrationNotice] = useState(false);
 
   useEffect(() => {
     setIsFirstTime(!hasMasterPassword());
@@ -57,12 +56,8 @@ export default function UnlockPage() {
         setTimeout(() => setShake(false), 500);
         return;
       }
-      unlock(password, result.entries);
+      unlock(password, result.entries, result.migrated);
       resetFailedAttempts();
-      if (result.migrated) {
-        setMigrationNotice(true);
-        setTimeout(() => setMigrationNotice(false), 5000);
-      }
       navigate('/vault');
     } else {
       incrementFailedAttempt();
@@ -153,13 +148,6 @@ export default function UnlockPage() {
           <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-3 animate-shake">
             <AlertTriangle size={20} className="text-red-400 flex-shrink-0" />
             <p className="text-red-300 text-sm">{error}</p>
-          </div>
-        )}
-
-        {migrationNotice && (
-          <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center gap-3 animate-fade-in">
-            <CheckCircle size={20} className="text-emerald-400 flex-shrink-0" />
-            <p className="text-emerald-300 text-sm">密码库已自动迁移到新版加密格式，数据安全已升级</p>
           </div>
         )}
 

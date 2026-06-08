@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Shield, Key, Activity, HardDrive, LogOut, Menu, X } from 'lucide-react';
+import { Shield, Key, Activity, HardDrive, LogOut, Menu, X, CheckCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useAppStore } from '@/store';
 import PasswordGenerator from '@/components/PasswordGenerator';
@@ -11,8 +11,9 @@ import type { ModuleType } from '@/types';
 
 export default function VaultPage() {
   const navigate = useNavigate();
-  const { isUnlocked, activeModule, setActiveModule, lock } = useAppStore();
+  const { isUnlocked, activeModule, setActiveModule, lock, migrated } = useAppStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showMigrationNotice, setShowMigrationNotice] = useState(migrated);
 
   useEffect(() => {
     if (!isUnlocked) {
@@ -134,6 +135,17 @@ export default function VaultPage() {
           </header>
 
           <main className="p-4 lg:p-8">
+            {showMigrationNotice && (
+              <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center justify-between animate-fade-in">
+                <div className="flex items-center gap-3">
+                  <CheckCircle size={20} className="text-emerald-400 flex-shrink-0" />
+                  <p className="text-emerald-300 text-sm">密码库已自动迁移到新版加密格式，数据安全已升级</p>
+                </div>
+                <button onClick={() => setShowMigrationNotice(false)} className="text-emerald-400/60 hover:text-emerald-300 transition-colors">
+                  <X size={16} />
+                </button>
+              </div>
+            )}
             {renderModule()}
           </main>
         </div>
