@@ -13,13 +13,19 @@ export default function VaultPage() {
   const navigate = useNavigate();
   const { isUnlocked, activeModule, setActiveModule, lock, migrated } = useAppStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showMigrationNotice, setShowMigrationNotice] = useState(migrated);
+  const [showMigrationNotice, setShowMigrationNotice] = useState(false);
 
   useEffect(() => {
     if (!isUnlocked) {
       navigate('/');
     }
   }, [isUnlocked, navigate]);
+
+  useEffect(() => {
+    if (migrated) {
+      setShowMigrationNotice(true);
+    }
+  }, [migrated]);
 
   const navItems = [
     { id: 'generator' as ModuleType, label: '密码生成器', icon: Key },

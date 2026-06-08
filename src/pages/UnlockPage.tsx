@@ -91,7 +91,7 @@ export default function UnlockPage() {
     }
 
     initializeMasterPassword(password);
-    unlock(password, []);
+    unlock(password, [], false);
     navigate('/vault');
   };
 
