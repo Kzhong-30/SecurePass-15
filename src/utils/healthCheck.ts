@@ -12,7 +12,7 @@ export function findDuplicates(entries: PasswordEntry[]): PasswordEntry[] {
   const duplicates: PasswordEntry[] = [];
   passwordMap.forEach((group) => {
     if (group.length > 1) {
-      duplicates.push(...group);
+      duplicates.push(group[0]);
     }
   });
 
@@ -32,7 +32,7 @@ export function findExpiredPasswords(
 ): PasswordEntry[] {
   const now = Date.now();
   const expiryTime = days * 24 * 60 * 60 * 1000;
-  return entries.filter((entry) => now - entry.updatedAt > expiryTime);
+  return entries.filter((entry) => now - entry.createdAt > expiryTime);
 }
 
 export function calculateHealthScore(result: HealthCheckResult): number {

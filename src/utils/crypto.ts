@@ -96,12 +96,12 @@ export function decryptData(encrypted: EncryptedData, masterPassword: string): s
   return result;
 }
 
-export function encryptBackup(data: string, masterPassword: string): EncryptedBackup {
+export function encryptBackup(data: string, encryptionPassword: string): EncryptedBackup {
   if (!data) throw new CryptoError('备份数据不能为空');
-  if (!masterPassword) throw new CryptoError('主密码不能为空');
+  if (!encryptionPassword) throw new CryptoError('加密密码不能为空');
 
   const salt = generateSalt();
-  const key = deriveKey(masterPassword, salt);
+  const key = deriveKey(encryptionPassword, salt);
   const iv = CryptoJS.lib.WordArray.random(16);
 
   const encryptedData = CryptoJS.AES.encrypt(data, key, {
@@ -119,13 +119,13 @@ export function encryptBackup(data: string, masterPassword: string): EncryptedBa
   };
 }
 
-export function decryptBackup(backup: EncryptedBackup, masterPassword: string): string {
+export function decryptBackup(backup: EncryptedBackup, encryptionPassword: string): string {
   if (!backup.encryptedData || !backup.iv || !backup.salt) {
     throw new CryptoError('备份数据格式不完整');
   }
-  if (!masterPassword) throw new CryptoError('主密码不能为空');
+  if (!encryptionPassword) throw new CryptoError('加密密码不能为空');
 
-  const key = deriveKey(masterPassword, backup.salt);
+  const key = deriveKey(encryptionPassword, backup.salt);
   const decrypted = CryptoJS.AES.decrypt(backup.encryptedData, key, {
     iv: CryptoJS.enc.Hex.parse(backup.iv),
     mode: CryptoJS.mode.CBC,

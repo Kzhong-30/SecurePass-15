@@ -1,9 +1,9 @@
 import type { PasswordEntry, EncryptedBackup } from '@/types';
 import { encryptBackup, decryptBackup, CryptoError } from './crypto';
 
-export function exportBackup(entries: PasswordEntry[], masterPassword: string): string {
+export function exportBackup(entries: PasswordEntry[], encryptionPassword: string): string {
   const dataStr = JSON.stringify(entries);
-  const backup = encryptBackup(dataStr, masterPassword);
+  const backup = encryptBackup(dataStr, encryptionPassword);
   return JSON.stringify(backup);
 }
 
@@ -22,7 +22,7 @@ export function validateBackupFormat(data: unknown): data is EncryptedBackup {
 
 export function importBackup(
   backupData: string,
-  masterPassword: string
+  encryptionPassword: string
 ): PasswordEntry[] | null {
   try {
     const parsed = JSON.parse(backupData);
@@ -31,7 +31,7 @@ export function importBackup(
       return null;
     }
 
-    const decrypted = decryptBackup(parsed, masterPassword);
+    const decrypted = decryptBackup(parsed, encryptionPassword);
     const entries = JSON.parse(decrypted);
 
     if (!Array.isArray(entries)) {
